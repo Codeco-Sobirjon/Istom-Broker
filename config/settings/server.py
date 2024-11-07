@@ -9,7 +9,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'istombroker',
-        'USER': 'itom',
+        'USER': 'postgres',
         "PASSWORD": "1",
         "HOST": "localhost",
         "PORT": 5432,
