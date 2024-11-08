@@ -37,7 +37,7 @@ THIRD_PARTY_APPS = [
 INSTALLED_APPS = [
     *THIRD_PARTY_APPS,
     'django.contrib.admin',
-    'django.contrib.auth',
+    'config.django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
