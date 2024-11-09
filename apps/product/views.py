@@ -21,7 +21,7 @@ from apps.product.utils import get_distinct_product_attributes
 
 
 class TopLevelCategoryWithSubCategoriesView(APIView):
-
+    permission_classes = [AllowAny]
     @swagger_auto_schema(
         tags=['category'],
         operation_description="Retrieve all top-level categories along with their subcategories.",
@@ -41,8 +41,9 @@ class TopLevelCategoryWithSubCategoriesView(APIView):
 
 
 class ProductListCreateView(APIView):
+    permission_classes = [AllowAny]
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
-    filterset_class = ProductFilter  # Use the filter set defined earlier
+    filterset_class = ProductFilter
 
     @swagger_auto_schema(
         operation_summary="List all products without authentication",
@@ -84,7 +85,7 @@ class ProductListCreateView(APIView):
         responses={200: ProductSerializer(many=True)},
     )
     def get(self, request):
-        products = Product.objects.all()  # This must be a queryset
+        products = Product.objects.all()
         filtered_queryset = self.filterset_class(request.GET, queryset=products)
         paginator = ProductPagination()
         paginated_products = paginator.paginate_queryset(filtered_queryset.qs, request)
@@ -93,7 +94,7 @@ class ProductListCreateView(APIView):
 
 
 class ProductCreateIsAuthentification(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
         operation_summary="List all products ",
@@ -108,6 +109,7 @@ class ProductCreateIsAuthentification(APIView):
         paginated_products = paginator.paginate_queryset(products, request)
         serializer = ProductSerializer(paginated_products, many=True, context={'request': request})
         return paginator.get_paginated_response(serializer.data)
+
 
     @swagger_auto_schema(
         operation_summary="Create a new product",
@@ -170,7 +172,7 @@ class ProductRetrieveUpdateDestroyView(APIView):
 
 
 class CommentListCreateView(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
         operation_summary="Create a new comment",
@@ -187,7 +189,7 @@ class CommentListCreateView(APIView):
 
 
 class ReviewListCreateView(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
         operation_summary="Create a new review",
@@ -204,8 +206,7 @@ class ReviewListCreateView(APIView):
 
 
 class DistinctProductAttributesView(APIView):
-    # permission_classes = [AllowAny]
-
+    permission_classes = [AllowAny]
     @swagger_auto_schema(
         operation_summary="Get distinct product attributes",
         tags=["product attributes"],

@@ -2,12 +2,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from drf_yasg import openapi
 from .models import BannerCarousel, Partners, GetConsultation
 from .serializers import BannerCarouselSerializer, PartnersSerializer, GetConsultationSerializer
 
 
 class BannerCarouselListView(APIView):
+    permission_classes = [AllowAny]
     @swagger_auto_schema(
         operation_summary="Get all banner images",
         tags=['configuration main site'],
@@ -20,6 +22,7 @@ class BannerCarouselListView(APIView):
 
 
 class PartnersListView(APIView):
+    permission_classes = [AllowAny]
     @swagger_auto_schema(
         operation_summary="Get all partner logos",
         tags=['configuration main site'],
@@ -32,6 +35,7 @@ class PartnersListView(APIView):
 
 
 class GetConsultationListView(APIView):
+    permission_classes = [AllowAny]
     @swagger_auto_schema(
         operation_summary="Get all consultation requests",
         tags=['configuration main site'],
