@@ -41,7 +41,6 @@ class TopLevelCategoryWithSubCategoriesView(APIView):
 
 
 class ProductListCreateView(APIView):
-    permission_classes = [AllowAny]
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
     filterset_class = ProductFilter  # Use the filter set defined earlier
 
@@ -171,7 +170,7 @@ class ProductRetrieveUpdateDestroyView(APIView):
 
 
 class CommentListCreateView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
         operation_summary="Create a new comment",
@@ -188,7 +187,7 @@ class CommentListCreateView(APIView):
 
 
 class ReviewListCreateView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
         operation_summary="Create a new review",
@@ -205,7 +204,7 @@ class ReviewListCreateView(APIView):
 
 
 class DistinctProductAttributesView(APIView):
-    permission_classes = [AllowAny]
+    # permission_classes = [AllowAny]
 
     @swagger_auto_schema(
         operation_summary="Get distinct product attributes",
