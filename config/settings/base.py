@@ -1,5 +1,8 @@
 import os
+from datetime import timedelta
 from pathlib import Path
+
+from django.conf import settings
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -253,3 +256,9 @@ CKEDITOR_5_UPLOAD_FILE_TYPES = ['jpeg', 'pdf', 'png']
 CKEDITOR_UPLOAD_PATH = "uploads/"
 CKEDITOR_IMAGE_BACKEND = "pillow"
 CKEDITOR_UPLOAD_SLUGIFY_FILENAME = False
+
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+}

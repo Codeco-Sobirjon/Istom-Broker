@@ -1,21 +1,27 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from django.db.models import Sum
+from django.db.models.functions import TruncWeek
+from django.utils import timezone
+from datetime import timedelta
+from collections import defaultdict
 
 from apps.product.filters import ProductFilter
 from apps.product.models import (
     Category, TopLevelCategory, SubCategory, Product, ProductImage, Review,
-    Comment
+    Comment, OrderProduct
 )
 from apps.product.pagination import ProductPagination
 from apps.product.serializers import (
     TopLevelCategoryWithSubCategoriesSerializer,
-    ProductSerializer, CommentSerializer, ReviewSerializer
+    ProductSerializer, CommentSerializer, ReviewSerializer, CreateOrderProductSerializer, OrderProductSerializer
 )
 from apps.product.utils import get_distinct_product_attributes
 
@@ -234,3 +240,92 @@ class DistinctProductAttributesView(APIView):
     def get(self, request):
         distinct_attributes = get_distinct_product_attributes()
         return Response(distinct_attributes)
+
+
+class CreateOrderProductView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_summary="Create a order",
+        tags=['order'],
+        request_body=CreateOrderProductSerializer,
+        responses={201: CreateOrderProductSerializer},
+    )
+    def post(self, request, *args, **kwargs):
+        serializer = CreateOrderProductSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            order_products = serializer.save()
+            return Response({"message": "Order products created successfully."}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserOrderProductListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_summary="User gets order product",
+        tags=['order'],
+        responses={200: ProductSerializer, 404: "Not Found"},
+    )
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        order_products = OrderProduct.objects.filter(user=user)
+
+        paginator = PageNumberPagination()
+        paginated_order_products = paginator.paginate_queryset(order_products, request)
+
+        serializer = OrderProductSerializer(paginated_order_products, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
+
+class WeeklyOrderProductStatisticsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    class CustomPagination(PageNumberPagination):
+        page_size = 4
+        page_size_query_param = 'page_size'
+        max_page_size = 100
+
+    @swagger_auto_schema(
+        operation_summary="Statistics of product sales by week",
+        tags=['order'],
+        responses={200: 'A list of product sales statistics for the last 7 days', 404: "Not Found"},
+    )
+    def get(self, request, *args, **kwargs):
+        today = timezone.now().date()
+        seven_days_ago = today + timedelta(days=7)
+
+        orders = OrderProduct.objects.select_related('user').filter(
+            user=request.user
+        ).filter(
+            created_at__gte=today, created_at__lte=seven_days_ago
+        )
+
+        weekly_orders = defaultdict(lambda: defaultdict(int))
+
+        for order in orders:
+            product = order.product
+            order_date = order.created_at.date()
+            weekly_orders[product][order_date] += order.quantity
+
+        all_dates = [today + timedelta(days=i) for i in range(8)]
+
+        result = []
+        for product, daily_orders in weekly_orders.items():
+            weekly_data = []
+            for date in all_dates:
+                weekly_data.append({
+                    "date": str(date),
+                    "quantity": daily_orders.get(date, 0)
+                })
+
+            result.append({
+                "product": ProductSerializer(product, context={'request': request}).data,
+                "weekly_order": weekly_data
+            })
+
+        paginator = self.CustomPagination()
+        paginated_result = paginator.paginate_queryset(result, request)
+
+        return paginator.get_paginated_response(paginated_result)
+

@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from apps.product.models import (
     Category, TopLevelCategory, SubCategory, Product, ProductImage, Review,
-    Comment
+    Comment, OrderProduct
 )
 
 
@@ -72,6 +72,19 @@ class ReviewAdmin(admin.ModelAdmin):
     class Meta:
         verbose_name = "Отзыв"
         verbose_name_plural = "Отзывы"
+
+
+@admin.register(OrderProduct)
+class OrderProductAdmin(admin.ModelAdmin):
+    list_display = ('product', 'user', 'quantity', 'status', 'total', 'created_at')
+    list_filter = ('status', 'created_at', 'user')
+    search_fields = ('product__name', 'user__username')
+    ordering = ('-created_at',)
+    readonly_fields = ('created_at',)
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.select_related('product', 'user')
 
 
 admin.site.register(Product, ProductAdmin)
