@@ -17,7 +17,7 @@ class BannerCarouselListView(APIView):
     )
     def get(self, request):
         banners = BannerCarousel.objects.all()
-        serializer = BannerCarouselSerializer(banners, many=True)
+        serializer = BannerCarouselSerializer(banners, many=True, context={'request': request})
         return Response(serializer.data)
 
 
@@ -30,7 +30,7 @@ class PartnersListView(APIView):
     )
     def get(self, request):
         partners = Partners.objects.all()
-        serializer = PartnersSerializer(partners, many=True)
+        serializer = PartnersSerializer(partners, many=True, context={'request': request})
         return Response(serializer.data)
 
 
@@ -43,7 +43,7 @@ class GetConsultationListView(APIView):
     )
     def get(self, request):
         consultations = GetConsultation.objects.all()
-        serializer = GetConsultationSerializer(consultations, many=True)
+        serializer = GetConsultationSerializer(consultations, many=True, context={'request': request})
         return Response(serializer.data)
 
     @swagger_auto_schema(
