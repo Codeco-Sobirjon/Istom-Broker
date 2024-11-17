@@ -1,3 +1,6 @@
+import json
+
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from rest_framework.pagination import PageNumberPagination
@@ -7,16 +10,13 @@ from rest_framework.response import Response
 from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from django.db.models import Sum
-from django.db.models.functions import TruncWeek
 from django.utils import timezone
 from datetime import timedelta
 from collections import defaultdict
 
 from apps.product.filters import ProductFilter
 from apps.product.models import (
-    Category, TopLevelCategory, SubCategory, Product, ProductImage, Review,
-    Comment, OrderProduct
+    Category, Product, OrderProduct, ProductImage, ProductSize
 )
 from apps.product.pagination import ProductPagination
 from apps.product.serializers import (
@@ -44,6 +44,35 @@ class TopLevelCategoryWithSubCategoriesView(APIView):
         serializer = TopLevelCategoryWithSubCategoriesSerializer(top_level_categories, many=True,
                                                                  context={'request': request})
         return Response(serializer.data)
+
+
+class CustomPageNumberPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
+class GetCategoryProductView(APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        tags=['category'],
+        operation_description="Retrieve all category's product",
+        responses={
+            200: ProductSerializer(many=True),
+            404: openapi.Response('Not Found'),
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        queryset = get_object_or_404(Category, id=kwargs.get('id'))
+        product_list = Product.objects.select_related('category').filter(
+            category=queryset
+        )
+        paginator = CustomPageNumberPagination()
+        paginated_products = paginator.paginate_queryset(product_list, request, view=self)
+
+        serializer = ProductSerializer(paginated_products, many=True, context={'request': request})
+        return paginator.get_paginated_response(serializer.data)
 
 
 class ProductListCreateView(APIView):
@@ -116,7 +145,6 @@ class ProductCreateIsAuthentification(APIView):
         serializer = ProductSerializer(paginated_products, many=True, context={'request': request})
         return paginator.get_paginated_response(serializer.data)
 
-
     @swagger_auto_schema(
         operation_summary="Create a new product",
         tags=['product'],
@@ -124,10 +152,24 @@ class ProductCreateIsAuthentification(APIView):
         responses={201: ProductSerializer},
     )
     def post(self, request):
+        images_data = request.FILES.getlist('images')
+        sizes_data = request.POST.getlist('sizes', [])
+
         serializer = ProductSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
+
             product = serializer.save()
-            return Response(ProductSerializer(product).data, status=status.HTTP_201_CREATED)
+
+            # Add images
+            for image in images_data:
+                ProductImage.objects.create(product=product, image=image)
+
+            ProductSize.objects.create(product=product, size=sizes_data)
+
+            response_data = serializer.data
+
+            return Response(response_data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

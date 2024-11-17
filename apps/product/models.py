@@ -131,6 +131,21 @@ class ProductImage(models.Model):
         verbose_name_plural = _("Изображение продукта")
 
 
+class ProductSize(models.Model):
+    product = models.ForeignKey(Product, related_name='sizes', null=True, blank=True, on_delete=models.CASCADE,
+                                verbose_name="Продукт")
+    size = models.JSONField(null=True, blank=True, verbose_name="Размер")
+
+    objects = models.Manager()
+
+    def __str__(self):
+        return f"{self.product.name} - {self.id}"
+
+    class Meta:
+        verbose_name = _("Размер продукта")
+        verbose_name_plural = _("Размер продукта")
+
+
 class OrderProduct(models.Model):
     STATUS_CHOICES = [
         ('payed', 'Оплачено'),

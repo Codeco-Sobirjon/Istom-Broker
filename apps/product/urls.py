@@ -6,12 +6,13 @@ from apps.product.views import (
     ProductRetrieveUpdateDestroyView,
     CommentListCreateView,
     ReviewListCreateView, ProductCreateIsAuthentification, DistinctProductAttributesView, CreateOrderProductView,
-    UserOrderProductListView, WeeklyOrderProductStatisticsView,
+    UserOrderProductListView, WeeklyOrderProductStatisticsView, GetCategoryProductView
 )
 
 
 urlpatterns = [
     path('top-level-categories-with-subcategories/', TopLevelCategoryWithSubCategoriesView.as_view(), name='top-level-categories-with-subcategories'),
+    path('category-product/<int:id>/', GetCategoryProductView.as_view(), name='category-product'),
 
     path('products/', ProductListCreateView.as_view(), name='product-list-create'),
     path('products/is/authen/', ProductCreateIsAuthentification.as_view(), name='product-list-create-authen'),

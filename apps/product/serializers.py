@@ -2,7 +2,7 @@ from django.db.models import Avg
 from rest_framework import serializers
 from apps.product.models import (
     Category, TopLevelCategory, SubCategory, Product, ProductImage, Review,
-    Comment, OrderProduct
+    Comment, OrderProduct, ProductSize
 )
 
 
@@ -38,8 +38,15 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ProductSizeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductSize
+        fields = '__all__'
+
+
 class ProductSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(many=True, required=False)
+    sizes = ProductSizeSerializer(many=True, required=False)
     comments = CommentSerializer(many=True, read_only=True)
     reviews = ReviewSerializer(many=True, read_only=True)
     average_rating = serializers.SerializerMethodField()
@@ -55,10 +62,7 @@ class ProductSerializer(serializers.ModelSerializer):
         return None
 
     def create(self, validated_data):
-        images_data = validated_data.pop('images', [])
         product = Product.objects.create(**validated_data)
-        for image_data in images_data:
-            ProductImage.objects.create(product=product, **image_data)
         return product
 
 

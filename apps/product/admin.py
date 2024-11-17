@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from apps.product.models import (
     Category, TopLevelCategory, SubCategory, Product, ProductImage, Review,
-    Comment, OrderProduct
+    Comment, OrderProduct, ProductSize
 )
 
 
@@ -44,8 +44,13 @@ class ProductImageInline(admin.TabularInline):
     extra = 1
 
 
+class ProductSizeInline(admin.TabularInline):
+    model = ProductSize
+    extra = 1
+
+
 class ProductAdmin(admin.ModelAdmin):
-    inlines = [ProductImageInline]
+    inlines = [ProductImageInline, ProductSizeInline]
     list_display = ('name', 'price', 'category', 'author', 'firm', 'country', 'vendor_code', 'created_at')
     search_fields = ('name', 'firm', 'author__username', 'vendor_code')
     list_filter = ('category', 'firm', 'country', 'created_at')
@@ -90,3 +95,4 @@ class OrderProductAdmin(admin.ModelAdmin):
 admin.site.register(Product, ProductAdmin)
 admin.site.register(TopLevelCategory, TopLevelCategoryAdmin)
 admin.site.register(SubCategory, SubCategoryAdmin)
+admin.site.register(ProductSize)
