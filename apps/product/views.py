@@ -143,7 +143,7 @@ class ProductCreateIsAuthentification(APIView):
         )
         paginator = ProductPagination()
         paginated_products = paginator.paginate_queryset(products, request)
-        serializer = ProductSerializer(paginated_products, many=True, context={'request': request})
+        serializer = ProductDetailSerializer(paginated_products, many=True, context={'request': request})
         return paginator.get_paginated_response(serializer.data)
 
     @swagger_auto_schema(

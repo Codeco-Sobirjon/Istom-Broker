@@ -51,9 +51,6 @@ class ProductSizeSerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    comments = CommentSerializer(many=True, read_only=True)
-    reviews = ReviewSerializer(many=True, read_only=True)
-    average_rating = serializers.SerializerMethodField()
     images = ProductImageSerializer(many=True, read_only=True)
     uploaded_images = serializers.ListField(
         child=serializers.ImageField(allow_empty_file=False, use_url=False),
