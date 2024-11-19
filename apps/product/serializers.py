@@ -5,6 +5,8 @@ from urllib.parse import urlparse
 from django.core.files.base import ContentFile
 from django.db.models import Avg
 from rest_framework import serializers
+
+from apps.account.serializers import CustomUserSerializer
 from apps.product.models import (
     Category, TopLevelCategory, SubCategory, Product, ProductImage, Review,
     Comment, OrderProduct, ProductSize
@@ -75,6 +77,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     average_rating = serializers.SerializerMethodField()
     images = ProductImageSerializer(many=True, read_only=True)
     sizes = ProductSizeSerializer(many=True, read_only=True)
+    author = CustomUserSerializer(read_only=True)
 
     class Meta:
         model = Product
