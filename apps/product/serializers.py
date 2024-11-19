@@ -1,9 +1,15 @@
+import json
+import os
+from urllib.parse import urlparse
+
+from django.core.files.base import ContentFile
 from django.db.models import Avg
 from rest_framework import serializers
 from apps.product.models import (
     Category, TopLevelCategory, SubCategory, Product, ProductImage, Review,
     Comment, OrderProduct, ProductSize
 )
+import requests
 
 
 class SubCategorySerializer(serializers.ModelSerializer):
@@ -45,11 +51,32 @@ class ProductSizeSerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    images = ProductImageSerializer(many=True, required=False)
-    sizes = ProductSizeSerializer(many=True, required=False)
     comments = CommentSerializer(many=True, read_only=True)
     reviews = ReviewSerializer(many=True, read_only=True)
     average_rating = serializers.SerializerMethodField()
+    images = ProductImageSerializer(many=True, read_only=True)
+    uploaded_images = serializers.ListField(
+        child=serializers.ImageField(allow_empty_file=False, use_url=False),
+        write_only=True
+    )
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'vendor_code', 'images', 'uploaded_images', 'author',]
+
+    def create(self, validated_data):
+        uploaded_images = validated_data.pop("uploaded_images")
+        product = Product.objects.create(**validated_data)
+        for image in uploaded_images:
+            ProductImage.objects.create(product=product, image=image)
+        return product
+
+
+class ProductDetailSerializer(serializers.ModelSerializer):
+    comments = CommentSerializer(many=True, read_only=True)
+    reviews = ReviewSerializer(many=True, read_only=True)
+    average_rating = serializers.SerializerMethodField()
+    images = ProductImageSerializer(many=True, read_only=True)
+    sizes = ProductSizeSerializer(many=True, read_only=True)
 
     class Meta:
         model = Product
@@ -60,10 +87,6 @@ class ProductSerializer(serializers.ModelSerializer):
         if reviews.exists():
             return reviews.aggregate(Avg('rating'))['rating__avg']
         return None
-
-    def create(self, validated_data):
-        product = Product.objects.create(**validated_data)
-        return product
 
 
 class OrderProductListSerializer(serializers.Serializer):

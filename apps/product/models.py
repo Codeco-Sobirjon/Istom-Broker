@@ -134,7 +134,7 @@ class ProductImage(models.Model):
 class ProductSize(models.Model):
     product = models.ForeignKey(Product, related_name='sizes', null=True, blank=True, on_delete=models.CASCADE,
                                 verbose_name="Продукт")
-    size = models.JSONField(null=True, blank=True, verbose_name="Размер")
+    size = models.CharField(max_length=250, null=True, blank=True, verbose_name="Размер")
 
     objects = models.Manager()
 

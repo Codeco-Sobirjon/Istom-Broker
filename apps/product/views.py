@@ -21,7 +21,8 @@ from apps.product.models import (
 from apps.product.pagination import ProductPagination
 from apps.product.serializers import (
     TopLevelCategoryWithSubCategoriesSerializer,
-    ProductSerializer, CommentSerializer, ReviewSerializer, CreateOrderProductSerializer, OrderProductSerializer
+    ProductSerializer, CommentSerializer, ReviewSerializer, CreateOrderProductSerializer, OrderProductSerializer,
+    ProductDetailSerializer
 )
 from apps.product.utils import get_distinct_product_attributes
 
@@ -152,24 +153,11 @@ class ProductCreateIsAuthentification(APIView):
         responses={201: ProductSerializer},
     )
     def post(self, request):
-        images_data = request.FILES.getlist('images')
-        sizes_data = request.POST.getlist('sizes', [])
-
         serializer = ProductSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-
-            product = serializer.save()
-
-            # Add images
-            for image in images_data:
-                ProductImage.objects.create(product=product, image=image)
-
-            ProductSize.objects.create(product=product, size=sizes_data)
-
+            serializer.save()
             response_data = serializer.data
-
             return Response(response_data, status=status.HTTP_201_CREATED)
-
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -183,7 +171,7 @@ class ProductRetrieveUpdateDestroyView(APIView):
     def get(self, request, pk):
         try:
             product = Product.objects.get(pk=pk)
-            serializer = ProductSerializer(product, context={'request': request})
+            serializer = ProductDetailSerializer(product, context={'request': request})
             return Response(serializer.data)
         except Product.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
