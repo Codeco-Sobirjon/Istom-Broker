@@ -62,7 +62,8 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         uploaded_images = validated_data.pop("uploaded_images")
-        product = Product.objects.create(**validated_data)
+        user = self.context.get('request').user
+        product = Product.objects.create(**validated_data, author=user)
         for image in uploaded_images:
             ProductImage.objects.create(product=product, image=image)
         return product
