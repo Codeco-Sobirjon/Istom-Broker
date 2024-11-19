@@ -162,6 +162,7 @@ class ProductCreateIsAuthentification(APIView):
 
 
 class ProductRetrieveUpdateDestroyView(APIView):
+    permission_classes = [AllowAny]
 
     @swagger_auto_schema(
         operation_summary="Retrieve a product",
